@@ -13,8 +13,7 @@ from matplotlib.path import Path
 from builtins import int, input
 from matplotlib.pyplot import grid
 import statistics
-import pathfinder
-from test.test_lzma import INPUT
+import astar
 
 sf = shapefile.Reader("crime_dt.shp") 
 
@@ -215,7 +214,7 @@ def findpath(grid):
 #     print(maze)    
     print()
     print("Calculating path...")
-    path= pathfinder.main(maze,size) 
+    path= astar.main(maze,size) 
 #     for i in path:
 #         print("(",grid[i[0]][i[1]],")")   
  
