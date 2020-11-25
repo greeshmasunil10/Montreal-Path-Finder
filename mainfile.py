@@ -152,7 +152,7 @@ def findpath(grid):
             gb= grid[i][j]
             row.append(gb.getcrime())
         maze1.append(row)      
-    crimemap.disp(np.array(maze1),size,median)   
+    crimemap.disp(np.array(maze1),grid_size,median)   
     maze=[]
     for i in range(size):
         row=[]
@@ -173,7 +173,7 @@ def findpath(grid):
     start = (x1,y1)
     end = (x2,y2)
     
-    path= astar.main(maze,size,start,end) 
+    path= astar.main(maze,grid_size,start,end) 
     print("Path found!!!:",path)
     
     for i in path:

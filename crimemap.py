@@ -10,9 +10,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import colors
 
-def disp(data,size,thresh):
-    xval = range(size)
-    yval = range(size)
+def disp(data,gridsize,thresh):
+    xval = np.linspace(45.49, 45.53, gridsize)  
+    yval = np.linspace(-73.59, -73.55, gridsize) 
     fig, ax = plt.subplots()
     cmap = colors.ListedColormap(['palegreen', 'tomato'])
     im = ax.imshow(data, cmap, interpolation='none', vmax=thresh*2)
@@ -23,8 +23,8 @@ def disp(data,size,thresh):
     ax.set_xticklabels(yval)
     ax.set_yticklabels(xval)
     
-    plt.setp(ax.get_xticklabels(), rotation=90, ha="right",
-             rotation_mode="anchor")
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+         rotation_mode="anchor")
     
     for i in range(len(xval)):
         for j in range(len(yval)):
