@@ -18,8 +18,7 @@ sf = shapefile.Reader("crime_dt.shp")
 median =0
 thresh=0
 
-def makegrid(grid_size):
-    print("grid_size:",grid_size)
+def createGrid(grid_size):
     x = np.linspace(-73.59, -73.55, grid_size+1) 
     y = np.linspace(45.53, 45.49, grid_size+1)  
     x_1, y_1 = np.meshgrid(x, y)
@@ -73,9 +72,8 @@ class vertex :
         return self.__risky
 
 
-def initgrid(x,y) :
+def assignCordinates(x,y) :
     print("Creating grid..")
-    print("size====",size)
     grid = [[vertex(0,0,0,0) for j in range(size)] for i in range(size)]
     for i in range(size):
         for j in range(size):
@@ -83,12 +81,12 @@ def initgrid(x,y) :
                              , [x[i][j],y[i][j]] , [x[i][j+1],y[i][j+1]] )
     return grid
 
-def setcrimerates(grid):
+def calcCrimeRates(grid):
     crimes=[]
     print("Calculating crime rates...")
     for i in range(size):
         for j in range(size):
-            grid[i][j]=addCrimePoints(grid[i][j])
+            grid[i][j]=addCrimePointsToBlock(grid[i][j])
             crimes.append(grid[i][j].getcrime())
     global thresh
 #    thresh=80
@@ -120,23 +118,21 @@ def setcrimerates(grid):
                 gridblock.setriskyfalse()
                 grid[i][j]= gridblock
                 continue
-    plt.show()
-
-    
+    plt.show()  
     return grid  
 
-def insidegrid(gridblock,px,py):
+def isInsideBlock(gridblock,px,py):
     if (float(px) > float(gridblock.gettl()[0]) and  float(px) < float(gridblock.gettr()[0]) and float(py) > float(gridblock.getbl()[1]) and float(py) < float(gridblock.gettl()[1])) :
         return True
     else :
         return False
 
   
-def addCrimePoints(gridblock):
+def addCrimePointsToBlock(gridblock):
     for val in sf.shapes() :
         px= val.points[0][0]
         py= val.points[0][1]
-        if insidegrid(gridblock, px, py):
+        if isInsideBlock(gridblock, px, py):
             gridblock.setcrime()
             gridblock.addpoint([px,py])
     return gridblock    
@@ -183,14 +179,14 @@ def findpath(grid):
         
 
 size=0.003
-size= float(input("\nEnter grid size (eg.0.002,0.003):"))
+#size= float(input("\nEnter grid size (eg.0.002,0.003):"))
 grid_size = 0.04 / size
-x, y = makegrid(grid_size)
+x, y = createGrid(grid_size)
 n= int(grid_size)
 size=int(n)
-print("grid size=xxxxxxxx",n) 
-grid=initgrid(x,y)
-grid= setcrimerates(grid)
+print("grid size=",n) 
+grid=assignCordinates(x,y)
+grid= calcCrimeRates(grid)
 findpath(grid)
 
 
