@@ -9,4 +9,4 @@ Libraries required: matplotlib, shapefile, geopandas, numpy.
 run mainfile.py
 Follow prompts
 
-![Screenshot](screenshot.jpg)
+![Screenshot](screenshot.jpeg)
