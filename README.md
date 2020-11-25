@@ -9,4 +9,4 @@ Libraries required: matplotlib, shapefile, geopandas, numpy.
 run mainfile.py
 Follow prompts
 
-75.png
+![Screenshot](screenshot.jpg)
