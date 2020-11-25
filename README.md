@@ -8,8 +8,6 @@ An application that finds a path through the crime-free areas in Montreal city t
 ![](screenshot2.png)
 
 ## Running instructions
-
-* Libraries required: matplotlib, shapefile, statistics, numpy.
 * Run mainfile.py
 * Follow prompts
 
