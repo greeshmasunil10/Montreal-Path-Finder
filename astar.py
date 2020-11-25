@@ -58,13 +58,9 @@ def calc(map, start, end):
             open_list.append(kid)
 
 
-def main(maze,size):
-
-    start = (0, 0)
-    end = (size-1, size-1)
+def main(maze,size,start,end):
 
     path = calc(maze, start, end)
-    print("Path found!!!:",path)
     return path
 
 

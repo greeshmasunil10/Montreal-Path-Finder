@@ -7,36 +7,25 @@ Created on Fri Oct 11 19:25:24 2019
 
 import numpy as np 
 import shapefile
-import geopandas as gpd
 import matplotlib.pyplot as plt
-from matplotlib.path import Path
-from builtins import int, input
 from matplotlib.pyplot import grid
 import statistics
 import astar
+import crimemap
+import showpath
 
 sf = shapefile.Reader("crime_dt.shp") 
+median =0
+thresh=0
 
-def makegrid(size):
-    fl = sf.fields
-    n = 0.04 / size
-    print("n:",n)
-    x = np.linspace(-73.59, -73.55, n+1) 
-    y = np.linspace(45.53, 45.49, n+1)  
+def makegrid(grid_size):
+    print("grid_size:",grid_size)
+    x = np.linspace(-73.59, -73.55, grid_size+1) 
+    y = np.linspace(45.53, 45.49, grid_size+1)  
     x_1, y_1 = np.meshgrid(x, y)
     plt.plot(x_1, y_1, marker='.', color='k', linestyle='none')  
     return x_1, y_1
 
-
-def checkgrid():
-    i = 1
-    for name in sf.shapes() :
-        print(name.points)
-        print(type(name.points))
-        print
-        i += 1
-        if i == 10:
-            break
 
 class vertex :
     __topleft=[]
@@ -49,27 +38,24 @@ class vertex :
     __points=[]
     __risky = 0
     
-    def __init__(self,c,d,a,b) :
+    def __init__(self,p_bottomleft,p_bottomright,p_topleft,p_topright) :
         self.__points=[]
         self.__risky=0
-        self.__topleft=a
-        self.__topright=b
-        self.__bottomleft=c
-        self.__bottomright=d
-        
-    def setindex(self,i,j):
-        self.__row=i
-        self.__column=j        
+        self.__topleft = p_topleft
+        self.__topright = p_topright
+        self.__bottomleft = p_bottomleft
+        self.__bottomright = p_bottomright
+             
     def addpoint(self,p):
-        self.__points.append(p)       
+        self.__points.append(p)     
+    def getpoints(self):
+        return self.__points
+    
     def setcrime(self):
         self.__crimerate+=1  
     def getcrime(self):
         return self.__crimerate 
-    def getrow(self):
-        return self.__row
-    def getcolumn(self):
-        return self.__column
+    
     def gettl(self):
         return self.__topleft 
     def gettr(self):
@@ -78,18 +64,13 @@ class vertex :
         return self.__bottomleft 
     def getbr(self):
         return self.__bottomright
-    def getpoints(self):
-        return self.__points
+    
     def setriskytrue(self):
         self.__risky = 1
     def setriskyfalse(self):
         self.__risky= 0
     def getrisk(self):
         return self.__risky
-        
-        
-def plotgraph(str):
-    points = gpd.read_file(str)
 
 
 def initgrid(x,y) :
@@ -104,39 +85,23 @@ def initgrid(x,y) :
 
 def setcrimerates(grid):
     crimes=[]
-    high=[]
-    low=[]
     print("Calculating crime rates...")
     for i in range(size):
         for j in range(size):
-            grid[i][j]=checkifcontains(grid[i][j])
-    print("Calculating threshold..")
-    for i in range(size):
-        for j in range(size):
-            gridblock= grid[i][j]
-#             print("grid:[",i,j,"] crimerate:",gridblock.getcrime())
-#             print("points:",gridblock.getpoints)
-            crimes.append(gridblock.getcrime())
-
-#     thresh=90
-
+            grid[i][j]=addCrimePoints(grid[i][j])
+            crimes.append(grid[i][j].getcrime())
+    global thresh
+#    thresh=80
     thresh= int(input("\nEnter threshold percentage (50,75,90,etc..):"))
-    if thresh == 50:
-        median=statistics.median(crimes)
-    elif thresh == 75:
-        crimes.sort()
-        crimes1= crimes[len(crimes)//2:]
-        median= statistics.median(crimes1)
-    else :
-        crimes.sort()
-        leng= len(crimes)
-        ind= thresh * leng // 100
-        median = crimes[ind]
-    print()    
+    crimes.sort()
+    leng= len(crimes)
+    ind= thresh * leng // 100
+    global median
+    median = crimes[ind]  
     print("Median:",median)
     totalcrimes= sum(crimes)
     print("Total crimes:",totalcrimes)
-    mean= statistics.mean(crimes)*8
+    mean= statistics.mean(crimes)
     print("Mean:",mean)
     std= statistics.stdev(crimes, xbar=None)
     print("Standard Deviation:",std)
@@ -146,12 +111,12 @@ def setcrimerates(grid):
         for j in range(size):
             gridblock= grid[i][j]
             if gridblock.getcrime()>median :
-                plt.plot(*zip(*gridblock.getpoints()), marker='.', color='y', ls='')
+                plt.plot(*zip(*gridblock.getpoints()), marker='.', color='r', ls='')
                 gridblock.setriskytrue()
                 grid[i][j]= gridblock
                 continue
             elif gridblock.getcrime() <=median :
-                plt.plot(*zip(*gridblock.getpoints()), marker='.', color='b', ls='')
+                plt.plot(*zip(*gridblock.getpoints()), marker='.', color='g', ls='')
                 gridblock.setriskyfalse()
                 grid[i][j]= gridblock
                 continue
@@ -167,14 +132,10 @@ def insidegrid(gridblock,px,py):
         return False
 
   
-def checkifcontains(gridblock):
-    i=1
-    for name in sf.shapes() :
-        px= name.points[0][0]
-        py= name.points[0][1]
-        points=[]
-        points.append(px)
-        points.append(py)
+def addCrimePoints(gridblock):
+    for val in sf.shapes() :
+        px= val.points[0][0]
+        py= val.points[0][1]
         if insidegrid(gridblock, px, py):
             gridblock.setcrime()
             gridblock.addpoint([px,py])
@@ -183,20 +144,15 @@ def checkifcontains(gridblock):
 def findpath(grid):
     print("\nCrime rates in each area")
     print()
+    global maze1
     maze1=[]
     for i in range(size):
         row=[]
         for j in range(size):
             gb= grid[i][j]
             row.append(gb.getcrime())
-        maze1.append(row)    
-    
-    for i in maze1:
-        print(i)  
-        
-        
-    print("\nRisky Areas ( 1 for risky vertex, 0 for less risky vertex :-")
-    print()    
+        maze1.append(row)      
+    crimemap.disp(np.array(maze1),size,median)   
     maze=[]
     for i in range(size):
         row=[]
@@ -204,32 +160,36 @@ def findpath(grid):
             gb= grid[i][j]
             row.append(gb.getrisk())
         maze.append(row)    
-    
-    for i in maze:
-        print(i)
-    
-    print()    
-      
-        
-#     print(maze)    
-    print()
     print("Calculating path...")
-    path= astar.main(maze,size) 
-#     for i in path:
-#         print("(",grid[i[0]][i[1]],")")   
- 
+    global path
 
+    print("Enter start cordinate:([0 to",size-1,"])")
+    x1=int(input("x:"))
+    y1=int(input("y:"))
+    print("Enter destination cordinate:([0 to",size-1,"])")
+    x2=int(input("x:"))
+    y2=int(input("y:"))
     
-plotgraph("crime_dt.shp")  
-# size=0.002
+    start = (x1,y1)
+    end = (x2,y2)
+    
+    path= astar.main(maze,size,start,end) 
+    print("Path found!!!:",path)
+    
+    for i in path:
+        maze1[i[0]][i[1]]=-3*thresh-1
+    showpath.disp(np.array(maze1),size,median)   
+            
+        
+
+size=0.003
 size= float(input("\nEnter grid size (eg.0.002,0.003):"))
-x, y = makegrid(size)
-print()
-n = 0.04 / size
-n= int(n)
-size=int(n-1)
-print("grid size=",n) 
-grid=initgrid(x,y) 
+grid_size = 0.04 / size
+x, y = makegrid(grid_size)
+n= int(grid_size)
+size=int(n)
+print("grid size=xxxxxxxx",n) 
+grid=initgrid(x,y)
 grid= setcrimerates(grid)
 findpath(grid)
 
