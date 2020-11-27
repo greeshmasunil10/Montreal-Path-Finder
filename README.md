@@ -1,7 +1,8 @@
 # Montreal-Path-Finder
 
 ## Introduction
-An application that finds a path through the crime-free areas in Montreal city for safe travelling. Analyses high crime areas in Montreal to provide a safe path between two coordinates on the map using A* heuristic algorithm.
+* An application that finds a path through the crime-free areas in Montreal city for safe travelling. 
+* Analyses high crime areas in Montreal to provide a safe path between two coordinates on the map using A* heuristic algorithm.
 
 ## Libraries Used
 * [numpy](https://numpy.org/)
