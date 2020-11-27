@@ -18,4 +18,7 @@
 * Run mainfile.py
 * Follow prompts
 
-
+## Future Scope
+* Get red zone alerts using live location
+* Live path
+* GUI
